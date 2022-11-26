@@ -8,7 +8,7 @@ chess game with AI
 * Convert to Windows / Mac 
 * Kivy Mob
 
-## Todo
+## UML
 
 ```plantuml
 @startuml
