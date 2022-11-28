@@ -1,4 +1,4 @@
-from kivy.app import App
-from kivy.uix.label import Label
+
+from Game import GameClasse
 
 print("Hello")
