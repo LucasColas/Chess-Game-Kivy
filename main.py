@@ -1,4 +1,4 @@
+from Game.Window import WindowApp
 
-from Game import GameClasse
-
-print("Hello")
+Game = WindowApp()
+Game.run()
