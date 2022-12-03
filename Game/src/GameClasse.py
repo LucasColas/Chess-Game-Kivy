@@ -1,4 +1,5 @@
 import numpy as np
+
 class Game():
     def __init__(self):
         self.n_row = 8
