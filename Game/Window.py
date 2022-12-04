@@ -27,13 +27,23 @@ class ChessGame(Widget):
         #print("board size : ", self.board_size)
     def draw_window(self):
         #print("in draw window")
+        print(1/8*self.board_size[0], 1/8*self.board_size[1])
+        #btn1 = Button(text='Hello', size_hint=(.7, 1))
+        #btn2 = Button(text='World', size_hint=(.3, 1))
+        #self.board.add_widget(btn1)
+        #self.board.add_widget(btn2)
+
+        #self.board
+
         for i in range(8):
             #print("in the first for loop")
-            board_row = BoxLayout(orientation="horizontal")
+
             for j in range(8):
                 #print("in the second for loop")
-                board_row.add_widget(Button(background_normal="", background_color=self.get_color(i,j)))
-            self.board.add_widget(board_row)
+                print(1/8*self.board_size[0], 1/8*self.board_size[1])
+                self.board.add_widget(Button(text="Test"+str(i), background_normal="", background_color=self.get_color(i,j), pos=(i*1/8*self.board_size[0], j*1/8*self.board_size[1])))
+
+
 
     def get_color(self, i,j):
         if (i+j)%2 != 0: #white square
