@@ -7,22 +7,28 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import ObjectProperty
+
 
 from kivy.uix.floatlayout import FloatLayout
 
 # 0 being off 1 being on as in true / false
-# you can use 0 or 1 && True or False
 Config.set('graphics', 'resizable', True)
 
 class ChessGame(Widget):
-
+    def __init__(self, **kwargs):
+        super(ChessGame, self).__init__(**kwargs)
+        print(self.ids)
+        self.board = self.ids["chess_board"]
     def draw_window(self):
-        board = self.ids.chess_board
+        print("in draw window")
         for i in range(8):
+            print("in the first for loop")
             board_row = BoxLayout(orientation="horizontal")
             for j in range(8):
-                board_row.add_widget(Button(background_normla="", background_color=self.get_color(i,j)))
-            board.add_widget(board_row)
+                print("in the second for loop")
+                board_row.add_widget(Button(background_normal="", background_color=self.get_color(i,j)))
+            self.board.add_widget(board_row)
 
     def get_color(self, i,j):
         if (i+j)%2 != 0: #white square
