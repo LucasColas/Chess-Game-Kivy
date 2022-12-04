@@ -8,6 +8,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
+from kivy.core.window import Window
 
 
 from kivy.uix.floatlayout import FloatLayout
@@ -18,15 +19,19 @@ Config.set('graphics', 'resizable', True)
 class ChessGame(Widget):
     def __init__(self, **kwargs):
         super(ChessGame, self).__init__(**kwargs)
-        print(self.ids)
+        #print(self.ids)
         self.board = self.ids["chess_board"]
+        self.Size = Window.system_size
+        print("size : ",self.Size)
+        self.board_size = [self.Size[0], self.Size[1]*0.8]
+        #print("board size : ", self.board_size)
     def draw_window(self):
-        print("in draw window")
+        #print("in draw window")
         for i in range(8):
-            print("in the first for loop")
+            #print("in the first for loop")
             board_row = BoxLayout(orientation="horizontal")
             for j in range(8):
-                print("in the second for loop")
+                #print("in the second for loop")
                 board_row.add_widget(Button(background_normal="", background_color=self.get_color(i,j)))
             self.board.add_widget(board_row)
 
