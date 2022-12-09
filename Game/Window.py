@@ -9,8 +9,6 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty
 from kivy.core.window import Window
-
-
 from kivy.uix.floatlayout import FloatLayout
 
 # 0 being off 1 being on as in true / false
@@ -40,7 +38,7 @@ class ChessGame(Widget):
 
             for j in range(8):
                 #print("in the second for loop")
-                print(1/8*self.board_size[0], 1/8*self.board_size[1])
+                #print(1/8*self.board_size[0], 1/8*self.board_size[1])
                 self.board.add_widget(Button(text="Test"+str(i), background_normal="", background_color=self.get_color(i,j), pos=(i*1/8*self.board_size[0], j*1/8*self.board_size[1])))
 
 
