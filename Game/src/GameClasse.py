@@ -14,7 +14,7 @@ class Game():
     def initialize_board(self):
         """
         initialize the board.
-
+        value from -6 to 6.
         abs(1): pawn
         abs(2): rook
         abs(3): knight
