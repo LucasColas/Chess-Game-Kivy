@@ -15,6 +15,7 @@ from kivy.uix.floatlayout import FloatLayout
 Config.set('graphics', 'resizable', 1)
 Window.size = (800, 800)
 Window.set_title("Chess")
+"""
 class ChessGame(GridLayout):
     def __init__(self, **kwargs):
         super(ChessGame, self).__init__(**kwargs)
@@ -49,7 +50,7 @@ class ChessGame(GridLayout):
             return [1,1,1,1]
         return [0,0,0,1]
 
-
+"""
 def get_color(i,j):
     if (i+j)%2 != 0: #white square
         return [1,1,1,1]
@@ -63,7 +64,7 @@ class BoxLayoutApp(App):
             for j in range(8):
                 print(i,j)
                 square_size = 0.125*800
-                row.add_widget(Button(background_color=get_color(i,j), width=square_size))
+                row.add_widget(Button(background_normal='', background_color=get_color(i,j), width=square_size))
             board.add_widget(row)
         return board
 
