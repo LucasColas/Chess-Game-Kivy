@@ -64,7 +64,7 @@ class BoxLayoutApp(App):
             board.add_widget(row)
         return board
         """
-        return chess_board.draw_board
+        return chess_board.board_frontend
 
 game = BoxLayoutApp()
 game.run()
