@@ -24,19 +24,18 @@ class Bishop(Widget):
         self.square_size = square_size
         self.ids.Bishop.pos = (200,200)
 
-class ChessGame(Widget):
+class ChessGame(BoxLayout):
     def __init__(self, **kwargs):
 
         #print(self.ids)
         self.board_backend = gc.Game()
         self.square_size = 0.125*Window.size[0]
-        self.board = BoxLayout(orientation='vertical')
-        self.Bishop = Bishop(self.square_size)
-        self.board_frontend = self.draw_window()
+        #self.board = BoxLayout(orientation='vertical')
+        self.board_frontend = self.draw_board()
         self.img = []
 
-        print("self board ",self.board)
-    def draw_window(self):
+        #print("self board ",self.board)
+    def draw_board(self):
         for i in range(8):
             row = BoxLayout(orientation='horizontal')
             for j in range(8):
@@ -54,16 +53,11 @@ class ChessGame(Widget):
             return [1,1,1,1]
         return [0,0,0,1]
 
-    def update_canvas(self):
-        self.canvas.clear()
-        for i in range(8):
-            for j in range(8):
-                with self.canvas:
-                    if self.board_backend.board[i,j] == 1:
-                        pass
+    def update_board(self):
+        pass
 
 
-class BoxLayoutApp(App):
+class WindowApp(App):
     def build(self):
         chess_board = ChessGame()
 

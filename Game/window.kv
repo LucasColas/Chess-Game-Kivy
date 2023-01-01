@@ -1,22 +1,19 @@
 #:kivy 1.0.9
 
-<Bishop>:
+<ChessCell>:
+    set_hint: None, None
+    on_release: self.parent.parent.parent.chesscell_clicked(self.id)
     Image:
-        id: Bishop
-        source: 'Assets/PNG/bB.png'
-
-
-<Knight>:
-
-<Pawn>:
-
-<Queen>:
-
-<Rook>:
-
-<King>:
+        set_hint: None, None
+        allow_stretch: True
+        keep_ratio: False
+        y: self.parent.y - (self.parent.height - self.height)/2
+        x: self.parent.x
+        height: self.parent.height
+        width: self.parent.width
 
 <ChessGame>:
-    id: "chess_board"
-    cols: 8
-    rows: 8
+    ChessBoard:
+        id: "chess_board"
+        cols: 8
+        rows: 8
