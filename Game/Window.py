@@ -18,11 +18,31 @@ import src.GameClasse as gc
 Config.set('graphics', 'resizable', 1)
 Window.size = (720, 720)
 Window.set_title("Chess")
-
+"""
 class Bishop(Widget):
     def __init__(self, square_size):
         self.square_size = square_size
         self.ids.Bishop.pos = (200,200)
+"""
+
+class Chessboard(GridLayout):
+    def images_dict(self, images_dir):
+
+        images = {'Black-Bishop':images_dir+'BlackBishop.png'
+                        'Black-King':images_dir+'BlackKing.png'
+                        'Black-Knight':images_dir+'BlackKnight.png'
+                        'Black-Pawn':images_dir+'BlackPawn.png'
+                        'Black-Queen':images_dir+'BlackQueen.png'
+                        'Black-Rook':images_dir+'BlackRook.png'
+                        'White-Bishop':images_dir+'WhiteBishop.png'
+                        'WhiteKing':images_dir+'WhiteKing.png'
+                        'WhiteKnight':images_dir+'WhiteKnight.png'
+                        'WhitePawn':images_dir+'WhitePawn.png'
+                        'WhiteQueen':images_dir+'WhiteQueen.png'
+                        'WhiteRook':images_dir+'WhiteRook.png'
+
+        }
+        return images
 
 class ChessGame(BoxLayout):
     def __init__(self, **kwargs):
@@ -36,15 +56,7 @@ class ChessGame(BoxLayout):
 
         #print("self board ",self.board)
     def draw_board(self):
-        for i in range(8):
-            row = BoxLayout(orientation='horizontal')
-            for j in range(8):
-
-                row.add_widget(Button(background_normal='', background_color=self.get_color(i,j), width=self.square_size))
-                if i == 1:
-                    pass
-            self.board.add_widget(row)
-        return self.board
+        #Add ChessCell
 
 
 
