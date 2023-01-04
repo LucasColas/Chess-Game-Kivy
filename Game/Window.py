@@ -25,6 +25,9 @@ class Bishop(Widget):
         self.ids.Bishop.pos = (200,200)
 """
 
+class ChessCell(Button):
+    pass
+
 class Chessboard(GridLayout):
     def images_dict(self, images_dir):
 
@@ -57,6 +60,10 @@ class ChessGame(BoxLayout):
         #print("self board ",self.board)
     def draw_board(self):
         #Add ChessCell
+        for i in range(64):
+            new_button = ChessCell(id=str(i))
+            
+
 
 
 
