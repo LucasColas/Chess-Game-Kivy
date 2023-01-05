@@ -47,6 +47,9 @@ class Chessboard(GridLayout):
         }
         return images
 
+    def update_position(self):
+        pass
+
 class ChessGame(BoxLayout):
     def __init__(self, **kwargs):
 
@@ -62,7 +65,7 @@ class ChessGame(BoxLayout):
         #Add ChessCell
         for i in range(64):
             new_button = ChessCell(id=str(i))
-            
+
 
 
 
