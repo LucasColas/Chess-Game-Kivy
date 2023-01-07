@@ -1,6 +1,6 @@
 import numpy as np
 
-class Game():
+class Board():
     def __init__(self):
         self.n_row = 8
         self.n_col = 8
@@ -22,7 +22,7 @@ class Game():
         abs(5): queen
         abs(6): king
 
-        if x > 0: it represents a black piece. Otherwise it represents a white piece.
+        if x > 0: it represents a black piece. If x < 0 it represents a white piece.
 
         First row : top of the board. So there are black rooks, black bishops...
         Last row : bottom of the board. So there are white rooks, white bishops...
@@ -59,4 +59,4 @@ class Game():
         return board
 
 
-newG = Game()
+newG = Board()

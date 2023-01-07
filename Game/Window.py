@@ -31,30 +31,40 @@ class ChessCell(Button):
 class Chessboard(GridLayout):
     def images_dict(self, images_dir):
 
-        images = {'Black-Bishop':images_dir+'BlackBishop.png'
-                        'Black-King':images_dir+'BlackKing.png'
-                        'Black-Knight':images_dir+'BlackKnight.png'
-                        'Black-Pawn':images_dir+'BlackPawn.png'
-                        'Black-Queen':images_dir+'BlackQueen.png'
-                        'Black-Rook':images_dir+'BlackRook.png'
-                        'White-Bishop':images_dir+'WhiteBishop.png'
-                        'WhiteKing':images_dir+'WhiteKing.png'
-                        'WhiteKnight':images_dir+'WhiteKnight.png'
-                        'WhitePawn':images_dir+'WhitePawn.png'
-                        'WhiteQueen':images_dir+'WhiteQueen.png'
-                        'WhiteRook':images_dir+'WhiteRook.png'
+        images = {4:images_dir+'BlackBishop.png',
+                        6:images_dir+'BlackKing.png',
+                        3:images_dir+'BlackKnight.png',
+                        1:images_dir+'BlackPawn.png',
+                        5:images_dir+'BlackQueen.png',
+                        2:images_dir+'BlackRook.png',
+                        -4:images_dir+'WhiteBishop.png',
+                        -6:images_dir+'WhiteKing.png',
+                        -3:images_dir+'WhiteKnight.png',
+                        -1:images_dir+'WhitePawn.png',
+                        -5:images_dir+'WhiteQueen.png',
+                        -2:images_dir+'WhiteRook.png'
 
         }
         return images
 
-    def update_position(self):
-        pass
+    def update_position(self, images_dir, board):
+        images = self.images_dict(images_dir)
+        ids = {child.id: child for child in self.children}
+
+        for i in range(8):
+            for j in range(8):
+                if board[i,j] != 0:
+                    image = images[board[i,j]]
+                else:
+                    image = images_dir + 'transparency.png'
+
+                ids[str(i) + "." + str(j)].children[0] = image
 
 class ChessGame(BoxLayout):
     def __init__(self, **kwargs):
 
         #print(self.ids)
-        self.board_backend = gc.Game()
+        self.board_backend = gc.Board()
         self.square_size = 0.125*Window.size[0]
         #self.board = BoxLayout(orientation='vertical')
         self.board_frontend = self.draw_board()
@@ -63,8 +73,9 @@ class ChessGame(BoxLayout):
         #print("self board ",self.board)
     def draw_board(self):
         #Add ChessCell
-        for i in range(64):
-            new_button = ChessCell(id=str(i))
+        for i in range(8):
+            for j in range(8):
+                new_button = ChessCell(id=str(i) + "." + str(j))
 
 
 
@@ -75,7 +86,7 @@ class ChessGame(BoxLayout):
             return [1,1,1,1]
         return [0,0,0,1]
 
-    def update_board(self):
+    def update_board(self, board):
         pass
 
 
