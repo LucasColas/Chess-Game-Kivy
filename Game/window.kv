@@ -2,7 +2,7 @@
 
 <ChessCell>:
     set_hint: None, None
-    #on_release: 
+    on_release: self.parent.parent.chesscell_clicked(self.id)
     Image:
         set_hint: None, None
         allow_stretch: True
