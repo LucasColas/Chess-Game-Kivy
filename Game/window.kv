@@ -1,5 +1,5 @@
 #:kivy 1.0.9
-
+"""
 <ChessCell>:
     set_hint: None, None
     on_release: self.parent.parent.chesscell_clicked(self.id)
@@ -13,7 +13,9 @@
         width: self.parent.width
 
 <ChessGame>:
+    board: chess_board
     ChessBoard:
         id: chess_board
         cols: 8
         rows: 8
+"""
