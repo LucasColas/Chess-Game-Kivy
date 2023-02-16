@@ -1,0 +1,11 @@
+#:kivy 1.0.9
+
+<ChessPiece>:
+    canvas:
+        Color:
+            rgba: 1, 0, 0, 0
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    size_hint: 0.125, 0.125
+    pos_hint: {'x': self.grid_x/8, 'y': self.grid_y/8}
