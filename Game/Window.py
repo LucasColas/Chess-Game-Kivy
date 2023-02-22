@@ -55,19 +55,25 @@ class Pawn(ChessPiece):
 
             return : available_moves (dictionary)
         """
-        if self.id[:5] == "White": #if it's the first time a pawn moves
+        if self.id[:5] == "White":
             available_moves = {"available_moves":(), "pieces_to_capture":[]}
-            if self.First_use:
-                #self.First_use = False
+
+            if self.grid_y > 7:
+                return available_moves
+            if self.First_use:  #if it's the first time a pawn moves
                 #origins of the x and y axis are in the bottom left corner.
                 #so a white pawn moves forward by incrementing its y coordinate.
                 available_moves["available_moves"] = ((self.grid_x, self.grid_y+1), (self.grid_x, self.grid_y+2))
             else:
-                available_moves["available_moves"] = ((self.grid_x, self.grid_y+1))
+                available_moves["available_moves"] = ((self.grid_x, self.grid_y+1),)
+                print("not first use, available_moves : ",available_moves["available_moves"])
+
+
+
 
             for piece in pieces:
                 #if there is a piece in front of it then it can move forward.
-                if piece.grid_y == self.grid_y + 1:
+                if piece.grid_y == self.grid_y + 1 and piece.grid_x == self.grid_x:
                     available_moves["available_moves"] = ()
 
                 #Look for pieces to capture. They must be white pieces.
@@ -88,17 +94,17 @@ class Pawn(ChessPiece):
                 #a white pawn moves forward by decrementing its y coordinate.
                 available_moves["available_moves"] = ((self.grid_x, self.grid_y-1), (self.grid_x,self.grid_y-2))
             else:
-                available_moves["available_moves"] = (self.grid_y+1)
+                available_moves["available_moves"] = ((self.grid_x, self.grid_y-1),)
             for piece in pieces:
-                if piece.grid_y == self.grid_y - 1:
+                if piece.grid_y == self.grid_y - 1 and piece.grid_x == self.grid_x:
                     available_moves["available_moves"] = ()
 
                 #Look for pieces to capture. They must be white pieces.
                 if piece.id[:5] == "White" and piece.grid_x == self.grid_x + 1 and piece.grid_y == self.grid_y - 1:
-                    available_moves["pieces_to_capture"].append((self.grid_x + 1,self.grid_y + 1))
+                    available_moves["pieces_to_capture"].append((self.grid_x + 1,self.grid_y - 1))
 
                 if piece.id[:5] == "White" and piece.grid_x == self.grid_x - 1 and piece.grid_y == self.grid_y - 1:
-                    available_moves["pieces_to_capture"].append((self.grid_x - 1,self.grid_y + 1))
+                    available_moves["pieces_to_capture"].append((self.grid_x - 1,self.grid_y - 1))
 
             return available_moves
 
@@ -106,7 +112,55 @@ class Rook(ChessPiece):
     pass
 
 class Knight(ChessPiece):
-    pass
+    """
+        Class for Knight piece.
+    """
+
+    def available_moves(self, pieces):
+        available_moves = {"available_moves":self.create_moves(), "pieces_to_capture":[]}
+
+        for piece in pieces:
+            if self.id[:5] == "White":
+                if piece.id[:5] == "White" and (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
+                    available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
+
+                if piece.id[:5] == "Black" and (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
+                    available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
+                    available_moves["pieces_to_capture"].append((piece.grid_x, piece.grid_y))
+
+            if self.id[:5] == "Black":
+                if piece.id[:5] == "Black" and (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
+                    available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
+
+                if piece.id[:5] == "White" and (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
+                    available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
+                    available_moves["pieces_to_capture"].append((piece.grid_x, piece.grid_y))
+
+        return available_moves
+
+
+    def create_moves(self):
+        moves = [
+            (self.grid_x + 2, self.grid_y + 1),
+            (self.grid_x + 1, self.grid_y + 2),
+            (self.grid_x - 2, self.grid_y + 1),
+            (self.grid_x - 1, self.grid_y + 2),
+
+            (self.grid_x + 1, self.grid_y - 2),
+            (self.grid_x + 2, self.grid_y - 1),
+            (self.grid_x - 2, self.grid_y - 1),
+            (self.grid_x - 1, self.grid_y - 2),
+        ]
+
+        for move in moves:
+            if move[0] > 7 or move[1] > 7:
+                moves.remove(move)
+
+            elif move[0] < 0 or move[1] < 0:
+                moves.remove(move)
+
+
+        return moves
 
 class Bishop(ChessPiece):
     pass
@@ -122,6 +176,7 @@ class ChessBoard(RelativeLayout):
         Relative Layout for the whole chess board.
     """
     piece_pressed = False
+    piece_ = None
     available_moves = {"available_moves":(), "pieces_to_capture":[]}
     def on_touch_down(self, touch):
         print("mouse ")
@@ -131,17 +186,36 @@ class ChessBoard(RelativeLayout):
         for child in self.children:
             #Find if a player clicked on a piece
             #TODO : check the turn
+            #TODO: do the 3 special moves
             #print(child.id)
             if grid_x == child.grid_x and grid_y == child.grid_y:
                 ChessBoard.piece_pressed = True
                 if child.id[5:9] == "Pawn": # TODO: set First_use to False
                     ChessBoard.available_moves = child.available_moves(self.children)
+                    ChessBoard.piece_ = child.id
                     print("available_moves : ", ChessBoard.available_moves)
                     self.draw_moves()
 
+                if child.id[5:11] == "Knight":
+                    #print("Knight")
+                    ChessBoard.available_moves = child.available_moves(self.children)
+                    #print("available_moves : ", ChessBoard.available_moves)
+                    ChessBoard.piece_ = child.id
+                    self.draw_moves()
 
-        anim = Animation(grid_x=grid_x, grid_y=grid_y, t='in_quad', duration=0.5)
-        #anim.start(self.children[0])
+        if ChessBoard.piece_pressed:
+            for id, child in enumerate(self.children):
+                if child.id == ChessBoard.piece_:
+                    if (grid_x, grid_y) in ChessBoard.available_moves["available_moves"]:
+
+                        anim = Animation(grid_x=grid_x, grid_y=grid_y, t='in_quad', duration=0.5)
+                        anim.start(self.children[id])
+                        ChessBoard.piece_pressed = False
+                        ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
+                        if child.id[5:9] == "Pawn" and child.First_use:
+                            child.First_use = False
+                        self.draw_moves()
+
     def draw_moves(self):
 
         """
@@ -151,19 +225,29 @@ class ChessBoard(RelativeLayout):
         """
         grid_size_x = self.width / 8
         grid_size_y = self.height / 8
-        Color_ = (0,0,1)
+        Blue = (0, 0, 1)
+        Green = (0, 1, 0)
         #self.canvas.clear()
 
         with self.canvas:
             #self.canvas.remove_group()
             print("draw")
             self.canvas.remove_group("moves") #remove previous moves drawn
-            size = (0.2*grid_size_x, 0.2*grid_size_y) #size of a circle that represents a move
-            moves = InstructionGroup() #Group where we store every circles
+            size = (0.2*grid_size_x, 0.2*grid_size_y) #size of a circle that represents an available move
+            #moves = InstructionGroup() #Group where we store every circles
 
-            for move in ChessBoard.available_moves["available_moves"]:
-                Color(rgb=Color_)
-                Ellipse(pos=(grid_size_x * move[0]+grid_size_x/2 - size[0]/2, grid_size_y * move[1] + grid_size_x/2 - size[1]/2), size=size, group="moves")
+            for idx, moves in enumerate(ChessBoard.available_moves.values()): #available_moves and pieces_to_capture
+                #print("moves in draw_moves : ", moves)
+                if idx == 0:
+                    Color(rgb=Blue)
+                    for move in moves:
+                        Ellipse(pos=(grid_size_x * move[0]+grid_size_x/2 - size[0]/2, grid_size_y * move[1] + grid_size_y/2 - size[1]/2), size=size, group="moves")
+                else:
+                    Color(rgb=Green)
+                    for move in moves:
+                        Ellipse(pos=(grid_size_x * move[0]+grid_size_x/2 - size[0]/2, grid_size_y * move[1] + grid_size_y/2 - size[1]/2), size=size, group="moves")
+
+
 
         #print("moves : ",self.canvas.get_group('moves'))
 
@@ -232,9 +316,9 @@ class ChessApp(App):
                         board.add_widget(ChessPiece(id="WhiteRook_"+str(1),source="Assets\PNG\WhiteRook.png",grid_x=col, grid_y=row))
 
                     elif col == 1:
-                        board.add_widget(ChessPiece(id="WhiteKnight_"+str(0),source="Assets\PNG\WhiteKnight.png",grid_x=col, grid_y=row))
+                        board.add_widget(Knight(id="WhiteKnight_"+str(0),source="Assets\PNG\WhiteKnight.png",grid_x=col, grid_y=row))
                     elif col == 6:
-                        board.add_widget(ChessPiece(id="WhiteKnight_"+str(1),source="Assets\PNG\WhiteKnight.png",grid_x=col, grid_y=row))
+                        board.add_widget(Knight(id="WhiteKnight_"+str(1),source="Assets\PNG\WhiteKnight.png",grid_x=col, grid_y=row))
 
                     elif col == 2:
                         board.add_widget(ChessPiece(id="WhiteBishop_"+str(0),source="Assets\PNG\WhiteBishop.png",grid_x=col, grid_y=row))
@@ -254,9 +338,9 @@ class ChessApp(App):
                         board.add_widget(ChessPiece(id="BlackRook_"+str(1),source="Assets\PNG\BlackRook.png",grid_x=col, grid_y=row))
 
                     elif col == 1:
-                        board.add_widget(ChessPiece(id="BlackKnight_"+str(0),source="Assets\PNG\BlackKnight.png",grid_x=col, grid_y=row))
+                        board.add_widget(Knight(id="BlackKnight_"+str(0),source="Assets\PNG\BlackKnight.png",grid_x=col, grid_y=row))
                     elif col == 6:
-                        board.add_widget(ChessPiece(id="BlackKnight_"+str(1),source="Assets\PNG\BlackKnight.png",grid_x=col, grid_y=row))
+                        board.add_widget(Knight(id="BlackKnight_"+str(1),source="Assets\PNG\BlackKnight.png",grid_x=col, grid_y=row))
 
                     elif col == 2:
                         board.add_widget(ChessPiece(id="BlackBishop_"+str(0),source="Assets\PNG\BlackBishop.png",grid_x=col, grid_y=row))
