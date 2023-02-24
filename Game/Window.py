@@ -86,11 +86,11 @@ class Pawn(ChessPiece):
             return available_moves
 
         if self.id[:5] == "Black":
-            print("Black")
+            #print("Black")
             available_moves = {"available_moves":(), "pieces_to_capture":[]}
             if self.First_use: #if it's the first time a pawn moves
                 #self.First_use = False
-                print("First Use")
+                #print("First Use")
                 #a white pawn moves forward by decrementing its y coordinate.
                 available_moves["available_moves"] = ((self.grid_x, self.grid_y-1), (self.grid_x,self.grid_y-2))
             else:
@@ -109,7 +109,135 @@ class Pawn(ChessPiece):
             return available_moves
 
 class Rook(ChessPiece):
-    pass
+    """
+        Class for Rook piece.
+    """
+    def available_moves(self, pieces):
+        available_moves = {"available_moves":[], "pieces_to_capture":[]}
+        rows = 8
+        cols = 8
+
+        moves_forward = [(self.grid_x, self.grid_y + i) for i in range(1, cols - self.grid_y)]
+        moves_backward = [(self.grid_x, self.grid_y - i) for i in range(1, self.grid_y + 1)]
+        moves_left = [(self.grid_x - i, self.grid_y) for i in range(1, self.grid_x + 1)]
+        moves_right [(self.grid_x + i, self.grid_y) for i in range(1, rows- self.grid_y)]
+        available_moves["available_moves"].extend(moves_forward)
+        available_moves["available_moves"].extend(moves_backward)
+        available_moves["available_moves"].extend(moves_left)
+        available_moves["available_moves"].extend(moves_right)
+        for piece in pieces:
+            if (piece.grid_x in piece.grid_y) in available_moves["available_moves"]:
+                if piece.id[:5] != self.id[:5]:
+                    #TODO : leave only the nearest enemy piece for each side
+
+                    available_moves["pieces_to_capture"].append((piece.grid_x in piece.grid_y))
+
+                if piece.grid_x == self.grid_x: #same x value so forward moves or backward moves must be deleted
+                    if piece.grid_y > self.grid_y:
+                        for move in available_moves["available_moves"]:
+                            if move[1] >= piece.grid_y:
+                                available_moves["available_moves"].remove(move)
+                    else:
+                        for move in available_moves["available_moves"]:
+                            if move[1] < piece.grid_y:
+                                available_moves["available_moves"].remove(move)
+
+
+                if piece.grid_y == self.grid_y:
+                    if piece.grid_x > self.grid_x:
+                        for move in available_moves["available_moves"]:
+                            if move[0] >= piece.grid_y:
+                                available_moves["available_moves"].remove(move)
+                    else:
+                        for move in available_moves["available_moves"]:
+                            if move[1] < piece.grid_x:
+                                available_moves["available_moves"].remove(move)
+
+        if len(available_moves["pieces_to_capture"]) > 0:
+            nearest_piece_right = None
+            nearest_piece_left = None
+            nearest_piece_above = None
+            nearest_piece_below = None
+            for move in available_moves["pieces_to_capture"]:
+                if self.grid_x == move[0]:
+                    if move[1] > self.grid_y:
+                        if not nearest_piece_above:
+                            nearest_piece_above = move
+                        else:
+                            if move[1] < nearest_piece_above:
+                                nearest_piece_above = move
+
+                    if move[1] < self.grid_y:
+                        if not nearest_piece_below:
+                            nearest_piece_below = move
+                        else:
+                            if move[1] > nearest_piece_below:
+                                nearest_piece_below = move
+
+                if self.grid_y == move[1]:
+                    if move[0] > self.grid_x:
+                        if not nearest_piece_right:
+                            nearest_piece_right = move
+                        else:
+                            if move[0] < nearest_piece_right:
+                                nearest_piece_right = move
+
+                    else:
+                        if not nearest_piece_left:
+                            nearest_piece_left = move
+
+                        else:
+                            if move[0] > nearest_piece_left:
+                                nearest_piece_left = move
+
+        """
+        for move in available_moves["pieces_to_capture"]:
+            for move2 in available_moves["pieces_to_capture"]:
+                if move != move2:
+                    if move[0] == move2[0]:
+                        if self.grid_y < move[1] and move[1] < move2[1]:
+                            available_moves["pieces_to_capture"].remove(move2)
+
+                        #elif self.grid_y < move2[1] and move2[1] < move[1]:
+                            #available_moves["pieces_to_capture"].remove(move)
+
+                        if self.grid_y > move[1] and move[1] > move2[1]:
+                            available_moves["pieces_to_capture"].remove(move2)
+
+                        #elif self.grid_y > move2[1] and move2[1] > move[1]:
+                            #available_moves["pieces_to_capture"].remove(move)
+
+                    if move[1] == move2[1]:
+                        if self.grid_x < move[0] and move[0] < move2[0]:
+                            available_moves["pieces_to_capture"].remove(move2)
+
+                        if self.grid_x > move[0] and move[0] > move2[0]:
+                            available_moves["pieces_to_capture"].remove(move2)
+
+            if self.grid_y < move[1]:
+                for move2 in available_moves["pieces_to_capture"]:
+                    if move[0] == move2[0]:
+                        if move[1] > move2[1]:
+                            available_moves["pieces_to_capture"].remove(move)
+                            break
+                        else:
+                            available_moves["pieces_to_capture"].remove(move2)
+
+            else:
+                for move2 in available_moves["pieces_to_capture"]:
+                    if move[0] == move2[0]:
+                        if move[1] > move2[1]:
+                            available_moves["pieces_to_capture"].remove(move)
+                        else:
+                            available_moves["pieces_to_capture"].remove(move2)
+            if self.grid_x < move[0]:
+                for move2 in available_moves["pieces_to_capture"]:
+                    if move[1] == move2[1]:
+                        if move[0] >
+        """
+        return available_moves
+
+
 
 class Knight(ChessPiece):
     """
@@ -178,43 +306,68 @@ class ChessBoard(RelativeLayout):
     piece_pressed = False
     piece_ = None
     available_moves = {"available_moves":(), "pieces_to_capture":[]}
+    turn = "White"
     def on_touch_down(self, touch):
-        print("mouse ")
+
+        #get the position
         grid_x = int(touch.pos[0] / self.width * 8)
         grid_y = int(touch.pos[1] / self.height * 8)
 
-        for child in self.children:
-            #Find if a player clicked on a piece
-            #TODO : check the turn
-            #TODO: do the 3 special moves
-            #print(child.id)
-            if grid_x == child.grid_x and grid_y == child.grid_y:
-                ChessBoard.piece_pressed = True
-                if child.id[5:9] == "Pawn": # TODO: set First_use to False
-                    ChessBoard.available_moves = child.available_moves(self.children)
-                    ChessBoard.piece_ = child.id
-                    print("available_moves : ", ChessBoard.available_moves)
-                    self.draw_moves()
+        if not ChessBoard.piece_pressed:
+            for child in self.children:
+                #Find if a player clicked on a piece
+                #TODO : check the turn
+                #TODO: do the 3 special moves
+                if grid_x == child.grid_x and grid_y == child.grid_y: #The player clicked on a piece
+                    ChessBoard.piece_pressed = True
+                    #Get available_moves
+                    if child.id[5:9] == "Pawn":
+                        ChessBoard.available_moves = child.available_moves(self.children)
+                        ChessBoard.piece_ = child.id
+                        print("available_moves : ", ChessBoard.available_moves)
+                        self.draw_moves()
 
-                if child.id[5:11] == "Knight":
-                    #print("Knight")
-                    ChessBoard.available_moves = child.available_moves(self.children)
-                    #print("available_moves : ", ChessBoard.available_moves)
-                    ChessBoard.piece_ = child.id
-                    self.draw_moves()
+                    if child.id[5:11] == "Knight":
+                        #print("Knight")
+                        ChessBoard.available_moves = child.available_moves(self.children)
+                        #print("available_moves : ", ChessBoard.available_moves)
+                        ChessBoard.piece_ = child.id
+                        self.draw_moves()
 
-        if ChessBoard.piece_pressed:
+        else: #A piece is pressed so let's see if the user clicked on an available moves and if he/she can capture a player
             for id, child in enumerate(self.children):
                 if child.id == ChessBoard.piece_:
                     if (grid_x, grid_y) in ChessBoard.available_moves["available_moves"]:
 
                         anim = Animation(grid_x=grid_x, grid_y=grid_y, t='in_quad', duration=0.5)
                         anim.start(self.children[id])
+
                         ChessBoard.piece_pressed = False
                         ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
                         if child.id[5:9] == "Pawn" and child.First_use:
                             child.First_use = False
                         self.draw_moves()
+
+                    elif (grid_x, grid_y) in ChessBoard.available_moves["pieces_to_capture"]:
+                        for enemy in self.children:
+                            if enemy.grid_x == grid_x and enemy.grid_y == grid_y:
+
+                                anim = Animation(grid_x=grid_x, grid_y=grid_y, t='in_out_expo', duration=0.5)
+                                anim.start(self.children[id])
+                                self.remove_widget(enemy)
+                                ChessBoard.piece_pressed = False
+                                ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
+                                if child.id[5:9] == "Pawn" and child.First_use:
+                                    child.First_use = False
+                                self.draw_moves()
+                                self.turn()
+
+    def turn(self):
+        if ChessBoard.turn == "White":
+            ChessBoard.turn = "Black"
+
+        else:
+            ChessBoard.turn = "White"
 
     def draw_moves(self):
 
@@ -265,7 +418,7 @@ class ChessBoard(RelativeLayout):
         self.draw_moves()
 
     def draw_board(self):
-        black = 0.5, 0.2, 0.2
+        green = 0.18, 0.70, 0.24
         white = 1, 1, 1
         is_white = False
         grid_size_x = self.width / 8
@@ -278,7 +431,7 @@ class ChessBoard(RelativeLayout):
                     if is_white:
                         Color(rgb=white)
                     else:
-                        Color(rgb=black)
+                        Color(rgb=green)
                     Rectangle(pos=(grid_size_x * x, grid_size_y * y), size=(grid_size_x, grid_size_y))
                     is_white = not is_white
                 is_white = not is_white
