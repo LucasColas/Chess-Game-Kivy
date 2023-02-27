@@ -131,7 +131,7 @@ class Rook(ChessPiece):
             available_moves["available_moves"].append((x, self.grid_y))
 
 
-        print("range values rook", int(self.grid_y) + 1, rows -  int(self.grid_y))
+
         for y in range(int(self.grid_y) + 1, rows):
             found = False
             for piece in pieces:
@@ -226,9 +226,82 @@ class Knight(ChessPiece):
         return moves
 
 class Bishop(ChessPiece):
-    pass
+    """
+        Class for Bishop piece.
+    """
 
-class Queen(ChessPiece):
+    def available_moves(self, pieces):
+        available_moves = {"available_moves":[], "pieces_to_capture":[]}
+        rows = 8
+        cols = 8
+
+        for i in range(1, rows):
+            if self.grid_x + i >= rows or self.grid_y + i >= rows:
+                break
+            found = False
+            for piece in pieces:
+                if piece.grid_x == self.grid_x + i and piece.grid_y == self.grid_y + i:
+                    found = True
+                    if piece.id[:5] != self.id[:5]:
+                        available_moves["pieces_to_capture"].append((self.grid_x + i, self.grid_y + i))
+                    break
+
+            if found:
+                break
+            available_moves["available_moves"].append((self.grid_x + i, self.grid_y + i))
+
+        for i in range(1, rows-max(int(self.grid_x), int(self.grid_y))):
+            if self.grid_x - i < 0 or self.grid_y + i >= rows:
+                break
+            found = False
+            for piece in pieces:
+                print(piece.grid_x, piece.grid_y,piece.grid_x == self.grid_x - i and piece.grid_y == self.grid_y + i)
+                if piece.grid_x == self.grid_x - i and piece.grid_y == self.grid_y + i:
+                    found = True
+                    if piece.id[:5] != self.id[:5]:
+                        available_moves["pieces_to_capture"].append((self.grid_x - i, self.grid_y + i))
+                    break
+
+            if found:
+                break
+            available_moves["available_moves"].append((self.grid_x - i, self.grid_y + i))
+
+        for i in range(1, rows-max(int(self.grid_x), int(self.grid_y))):
+            if self.grid_x - i < 0 or self.grid_y - i < 0:
+                break
+            found = False
+            for piece in pieces:
+                if piece.grid_x == self.grid_x - i and piece.grid_y == self.grid_y - i:
+                    found = True
+                    if piece.id[:5] != self.id[:5]:
+                        available_moves["pieces_to_capture"].append((self.grid_x - i, self.grid_y - i))
+                    break
+
+            if found:
+                break
+            available_moves["available_moves"].append((self.grid_x - i, self.grid_y - i))
+
+        for i in range(1, rows-max(int(self.grid_x), int(self.grid_y))):
+            if self.grid_x + i >= rows or self.grid_y - i < 0:
+                break
+            found = False
+            for piece in pieces:
+                if piece.grid_x == self.grid_x + i and piece.grid_y == self.grid_y - i:
+                    found = True
+                    if piece.id[:5] != self.id[:5]:
+                        available_moves["pieces_to_capture"].append((self.grid_x + i, self.grid_y - i))
+                    break
+
+            if found:
+                break
+            available_moves["available_moves"].append((self.grid_x + i, self.grid_y - i))
+
+
+        return available_moves
+
+
+
+class Queen(ChessPiece): #Try : Inherit from Bishop and Rook
     pass
 
 class King(ChessPiece):
@@ -410,9 +483,9 @@ class ChessApp(App):
                         board.add_widget(Knight(id="WhiteKnight_"+str(1),source="Assets\PNG\WhiteKnight.png",grid_x=col, grid_y=row))
 
                     elif col == 2:
-                        board.add_widget(ChessPiece(id="WhiteBishop_"+str(0),source="Assets\PNG\WhiteBishop.png",grid_x=col, grid_y=row))
+                        board.add_widget(Bishop(id="WhiteBishop_"+str(0),source="Assets\PNG\WhiteBishop.png",grid_x=col, grid_y=row))
                     elif col == 5:
-                        board.add_widget(ChessPiece(id="WhiteBishop_"+str(1),source="Assets\PNG\WhiteBishop.png",grid_x=col, grid_y=row))
+                        board.add_widget(Bishop(id="WhiteBishop_"+str(1),source="Assets\PNG\WhiteBishop.png",grid_x=col, grid_y=row))
 
                     elif col == 3:
                         board.add_widget(ChessPiece(id="WhiteKing",source="Assets\PNG\WhiteKing.png",grid_x=col, grid_y=row))
@@ -432,9 +505,9 @@ class ChessApp(App):
                         board.add_widget(Knight(id="BlackKnight_"+str(1),source="Assets\PNG\BlackKnight.png",grid_x=col, grid_y=row))
 
                     elif col == 2:
-                        board.add_widget(ChessPiece(id="BlackBishop_"+str(0),source="Assets\PNG\BlackBishop.png",grid_x=col, grid_y=row))
+                        board.add_widget(Bishop(id="BlackBishop_"+str(0),source="Assets\PNG\BlackBishop.png",grid_x=col, grid_y=row))
                     elif col == 5:
-                        board.add_widget(ChessPiece(id="BlackBishop_"+str(1),source="Assets\PNG\BlackBishop.png",grid_x=col, grid_y=row))
+                        board.add_widget(Bishop(id="BlackBishop_"+str(1),source="Assets\PNG\BlackBishop.png",grid_x=col, grid_y=row))
 
                     elif col == 3:
                         board.add_widget(ChessPiece(id="BlackKing",source="Assets\PNG\BlackKing.png",grid_x=col, grid_y=row))
