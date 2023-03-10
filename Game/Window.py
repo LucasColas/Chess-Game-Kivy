@@ -114,6 +114,7 @@ class Rook(ChessPiece):
     """
         Class for Rook piece.
     """
+    First_use = BooleanProperty()
     def available_moves(self, pieces):
         #super(Rook, self).available_moves(pieces)
         available_moves = {"available_moves":[], "pieces_to_capture":[]}
@@ -185,8 +186,10 @@ class Knight(ChessPiece):
     def available_moves(self, pieces):
         available_moves = {"available_moves":self.create_moves(), "pieces_to_capture":[]}
 
+
         for piece in pieces:
             if self.id[:5] == "White":
+
                 if piece.id[:5] == "White" and (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
                     available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
 
@@ -217,16 +220,13 @@ class Knight(ChessPiece):
             (self.grid_x - 2, self.grid_y - 1),
             (self.grid_x - 1, self.grid_y - 2),
         ]
-
+        good_moves = []
         for move in moves:
-            if move[0] > 7 or move[1] > 7:
-                moves.remove(move)
-
-            elif move[0] < 0 or move[1] < 0:
-                moves.remove(move)
+            if move[0] <= 7 and move[1] <= 7 and move[0] >= 0 and move[1] >= 0:
+                good_moves.append((move))
 
 
-        return moves
+        return good_moves
 
 class Bishop(ChessPiece):
     """
@@ -319,7 +319,79 @@ class Queen(Rook, Bishop): #Inherit from Bishop and Rook
         return available_moves
 
 class King(ChessPiece):
-    pass
+    First_use = BooleanProperty()
+    def available_moves(self, pieces):
+        available_moves = self.create_moves()
+        rows, cols = 8,8
+        good_available_moves = []
+        for move in available_moves["available_moves"]:
+
+            if move[0] < cols and move[1] < rows and move[1] >= 0 and move[0] >= 0:
+
+                good_available_moves.append(move)
+                #print("in King : ", available_moves)
+
+        available_moves["available_moves"] = good_available_moves
+        #print("in King : ", available_moves)
+
+        for piece in pieces:
+            if (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
+                if piece.id[:5] != self.id[:5]:
+                    available_moves["pieces_to_capture"].append((piece.grid_x, piece.grid_y))
+
+                available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
+
+        if self.First_use:
+            available_moves["castling"] = self.castling(pieces)
+
+        return available_moves
+
+
+    def create_moves(self):
+        available_moves = {"available_moves":[], "pieces_to_capture":[]}
+
+        available_moves["available_moves"].append((self.grid_x, self.grid_y+1))
+
+        available_moves["available_moves"].append((self.grid_x-1, self.grid_y+1))
+
+        available_moves["available_moves"].append((self.grid_x+1, self.grid_y+1))
+
+        available_moves["available_moves"].append((self.grid_x-1, self.grid_y))
+
+        available_moves["available_moves"].append((self.grid_x-1, self.grid_y-1))
+
+        available_moves["available_moves"].append((self.grid_x+1, self.grid_y))
+
+        available_moves["available_moves"].append((self.grid_x+1, self.grid_y-1))
+
+        available_moves["available_moves"].append((self.grid_x, self.grid_y-1))
+
+        return available_moves
+
+    def castling(self, pieces):
+        if self.First_use:
+            print("castling First use")
+            no_piece_left = True
+            no_piece_right = True
+            for piece in pieces:
+                #Problem with if : if there's an ennemy piece it may work
+                if piece.grid_y == self.grid_y and piece.grid_x > self.grid_x and (piece.id[5:9] != "Rook" or self.id[:5] != piece.id[:5]):
+                    print("no_piece_right False : ", piece.grid_y, piece.grid_x, piece.id)
+                    no_piece_right = False
+
+                elif piece.grid_y == self.grid_y and piece.grid_x < self.grid_x and (piece.id[5:9] != "Rook" or self.id[:5] != piece.id[:5]):
+                    print("no_piece_left False : ", piece.grid_y, piece.grid_x, piece.id)
+                    no_piece_left = False
+
+            if no_piece_right and no_piece_left:
+                return [(self.grid_x-2, self.grid_y),(self.grid_x+2, self.grid_y)]
+
+            if no_piece_right:
+                return [(self.grid_x+2, self.grid_y)]
+
+            if no_piece_left:
+                return [(self.grid_x-2, self.grid_y)]
+        return []
 
 class ChessBoard(RelativeLayout):
     """
@@ -329,19 +401,21 @@ class ChessBoard(RelativeLayout):
     id_piece_ = None
     available_moves = {"available_moves":(), "pieces_to_capture":[]}
     turn_ = "White"
+    piece_index = None
     def on_touch_down(self, touch):
-
+        rows, cols = 8,8
         #get the position
-        grid_x = int(touch.pos[0] / self.width * 8)
-        grid_y = int(touch.pos[1] / self.height * 8)
+        grid_x = int(touch.pos[0] / self.width * rows)
+        grid_y = int(touch.pos[1] / self.height * cols)
 
         for id, child in enumerate(self.children):
             if not ChessBoard.piece_pressed:
                 #Find if a player clicked on a piece
                 #TODO : check the turn
                 #TODO: do the 3 special moves
-                if grid_x == child.grid_x and grid_y == child.grid_y: #The player clicked on a piece
+                if grid_x == child.grid_x and grid_y == child.grid_y and child.id[:5] == ChessBoard.turn_: #The player clicked on a piece
                     ChessBoard.piece_pressed = True
+                    ChessBoard.piece_index = id
                     #Get available_moves
                     print(child.id)
                     ChessBoard.available_moves = child.available_moves(self.children)
@@ -357,17 +431,20 @@ class ChessBoard(RelativeLayout):
                 ChessBoard.id_piece_ = child.id
                 break
 
-            if ChessBoard.piece_pressed and child.id == ChessBoard.id_piece_:
+            elif ChessBoard.piece_pressed and child.id == ChessBoard.id_piece_:
                 if (grid_x, grid_y) in ChessBoard.available_moves["available_moves"]:
 
                     anim = Animation(grid_x=grid_x, grid_y=grid_y, t='in_quad', duration=0.5)
                     anim.start(self.children[id])
+
+
 
                     ChessBoard.piece_pressed = False
                     ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
                     if child.id[5:9] == "Pawn" and child.First_use:
                         child.First_use = False
                     self.draw_moves()
+                    self.turn()
 
                 elif (grid_x, grid_y) in ChessBoard.available_moves["pieces_to_capture"]:
                     for enemy in self.children:
@@ -383,6 +460,27 @@ class ChessBoard(RelativeLayout):
                             self.draw_moves()
                             self.turn()
                             break
+
+            elif ChessBoard.piece_pressed and ChessBoard.id_piece_[5:] == "King" and (grid_x, grid_y) in ChessBoard.available_moves["castling"] and child.id[:5] == ChessBoard.id_piece_[:5] and child.id[5:-2] == "Rook":
+                if child.grid_x == grid_x + 1:
+                    anim = Animation(grid_x=grid_x-1, grid_y=grid_y, t='in_out_expo', duration=0.5)
+                    anim.start(self.children[id])
+
+                elif child.grid_x == grid_x - 1:
+                    anim = Animation(grid_x=grid_x+1, grid_y=grid_y, t='in_out_expo', duration=0.5)
+                    anim.start(self.children[id])
+                anim = Animation(grid_x=grid_x, grid_y=grid_y, t='in_out_expo', duration=0.5)
+                anim.start(self.children[ChessBoard.piece_index])
+                ChessBoard.piece_pressed = False
+                child.First_use = False
+                self.children[ChessBoard.piece_index].First_use = False
+                ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
+                self.turn()
+                self.draw_moves()
+
+
+
+            #print(ChessBoard.id_piece_[5:], child.id[:5], ChessBoard.id_piece_[:5], child.id[5:-2])
 
 
     def turn(self):
@@ -407,18 +505,18 @@ class ChessBoard(RelativeLayout):
 
         with self.canvas:
             #self.canvas.remove_group()
-            print("draw")
+            #print("draw")
             self.canvas.remove_group("moves") #remove previous moves drawn
             size = (0.2*grid_size_x, 0.2*grid_size_y) #size of a circle that represents an available move
             #moves = InstructionGroup() #Group where we store every circles
 
             for idx, moves in enumerate(ChessBoard.available_moves.values()): #available_moves and pieces_to_capture
-                #print("moves in draw_moves : ", moves)
+                print("moves in draw_moves : ", moves)
                 if idx == 0:
                     Color(rgb=Blue)
                     for move in moves:
                         Ellipse(pos=(grid_size_x * move[0]+grid_size_x/2 - size[0]/2, grid_size_y * move[1] + grid_size_y/2 - size[1]/2), size=size, group="moves")
-                else:
+                elif idx == 1:
                     Color(rgb=Green)
                     for move in moves:
                         Ellipse(pos=(grid_size_x * move[0]+grid_size_x/2 - size[0]/2, grid_size_y * move[1] + grid_size_y/2 - size[1]/2), size=size, group="moves")
@@ -502,10 +600,10 @@ class ChessApp(App):
                         board.add_widget(Bishop(id="WhiteBishop_"+str(1),source="Assets\PNG\WhiteBishop.png",grid_x=col, grid_y=row))
 
                     elif col == 3:
-                        board.add_widget(ChessPiece(id="WhiteKing",source="Assets\PNG\WhiteKing.png",grid_x=col, grid_y=row))
+                        board.add_widget(Queen(id="WhiteQueen",source="Assets\PNG\WhiteQueen.png",grid_x=col, grid_y=row))
 
                     else:
-                        board.add_widget(Queen(id="WhiteQueen",source="Assets\PNG\WhiteQueen.png",grid_x=col, grid_y=row))
+                        board.add_widget(King(id="WhiteKing",source="Assets\PNG\WhiteKing.png",grid_x=col, grid_y=row))
 
                 elif row == 7:
                     if col == 0:
@@ -524,10 +622,10 @@ class ChessApp(App):
                         board.add_widget(Bishop(id="BlackBishop_"+str(1),source="Assets\PNG\BlackBishop.png",grid_x=col, grid_y=row))
 
                     elif col == 3:
-                        board.add_widget(ChessPiece(id="BlackKing",source="Assets\PNG\BlackKing.png",grid_x=col, grid_y=row))
+                        board.add_widget(Queen(id="BlackQueen",source="Assets\PNG\BlackQueen.png",grid_x=col, grid_y=row))
 
                     else:
-                        board.add_widget(Queen(id="BlackQueen",source="Assets\PNG\BlackQueen.png",grid_x=col, grid_y=row))
+                        board.add_widget(King(id="BlackKing",source="Assets\PNG\BlackKing.png",grid_x=col, grid_y=row))
 
 
 
