@@ -376,11 +376,11 @@ class King(ChessPiece):
             for piece in pieces:
                 #Problem with if : if there's an ennemy piece it may work
                 if piece.grid_y == self.grid_y and piece.grid_x > self.grid_x and (piece.id[5:9] != "Rook" or self.id[:5] != piece.id[:5]):
-                    print("no_piece_right False : ", piece.grid_y, piece.grid_x, piece.id)
+                    #print("no_piece_right False : ", piece.grid_y, piece.grid_x, piece.id)
                     no_piece_right = False
 
                 elif piece.grid_y == self.grid_y and piece.grid_x < self.grid_x and (piece.id[5:9] != "Rook" or self.id[:5] != piece.id[:5]):
-                    print("no_piece_left False : ", piece.grid_y, piece.grid_x, piece.id)
+                    #print("no_piece_left False : ", piece.grid_y, piece.grid_x, piece.id)
                     no_piece_left = False
 
             if no_piece_right and no_piece_left:
@@ -392,6 +392,22 @@ class King(ChessPiece):
             if no_piece_left:
                 return [(self.grid_x-2, self.grid_y)]
         return []
+
+    def check_check(self, pieces, grid_x, grid_x): #check if there is a check
+        for piece in pieces:
+            if piece.id[:5] != self.id[:5]:
+                piece_available_moves = piece.available_moves()
+                if (grid_x, grid_y) in piece_available_moves["available_moves"] or (self.grid_x, self.grid_y) in piece_available_moves["pieces_to_capture"]:
+                    return True
+
+        return False
+
+    def checkmate(self, pieces):
+        available_moves = self.available_moves(pieces)
+        if len(available_moves["available_moves"]) == 0 and len(available_moves["pieces_to_capture"]) == 0 and self.check_check(pieces):
+            return True
+
+        return False
 
 class ChessBoard(RelativeLayout):
     """
