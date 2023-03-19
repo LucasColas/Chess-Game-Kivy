@@ -393,18 +393,26 @@ class King(ChessPiece):
                 return [(self.grid_x-2, self.grid_y)]
         return []
 
-    def check_check(self, pieces, grid_x, grid_x): #check if there is a check
+    def check_check(self, pieces): #check if there is a check
         for piece in pieces:
             if piece.id[:5] != self.id[:5]:
                 piece_available_moves = piece.available_moves()
-                if (grid_x, grid_y) in piece_available_moves["available_moves"] or (self.grid_x, self.grid_y) in piece_available_moves["pieces_to_capture"]:
+                if (self.grid_x, self.grid_y) in piece_available_moves["available_moves"] or (self.grid_x, self.grid_y) in piece_available_moves["pieces_to_capture"]:
                     return True
 
         return False
 
+    def eliminate_check(self, pieces):
+        ids_ = []
+        for piece in pieces:
+            if piece.id[:5] == self.id[:5]:
+                piece_available_moves = piece.available_moves()
+                if (self.grid_x, self.grid_y) in piece_available_moves["available_moves"] or (self.grid_x, self.grid_y) in piece_available_moves["pieces_to_capture"]:
+                    ids_.append(piece.id)
+
     def checkmate(self, pieces):
-        available_moves = self.available_moves(pieces)
-        if len(available_moves["available_moves"]) == 0 and len(available_moves["pieces_to_capture"]) == 0 and self.check_check(pieces):
+
+        if len(self.available_moves()["available_moves"]) == 0 and len(self.available_moves()["pieces_to_capture"]) == 0 and self.check_check(pieces):
             return True
 
         return False
@@ -418,6 +426,7 @@ class ChessBoard(RelativeLayout):
     available_moves = {"available_moves":(), "pieces_to_capture":[]}
     turn_ = "White"
     piece_index = None
+    check = BooleanProperty(defaultvalue=False)
     def on_touch_down(self, touch):
         rows, cols = 8,8
         #get the position
@@ -425,9 +434,9 @@ class ChessBoard(RelativeLayout):
         grid_y = int(touch.pos[1] / self.height * cols)
 
         for id, child in enumerate(self.children):
+            old_x, old_y = child.grid_x, child.grid_y
             if not ChessBoard.piece_pressed:
-                #Find if a player clicked on a piece
-                #TODO : check the turn
+
                 #TODO: do the 3 special moves
                 if grid_x == child.grid_x and grid_y == child.grid_y and child.id[:5] == ChessBoard.turn_: #The player clicked on a piece
                     ChessBoard.piece_pressed = True
@@ -455,12 +464,22 @@ class ChessBoard(RelativeLayout):
 
 
 
+
                     ChessBoard.piece_pressed = False
                     ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
                     if child.id[5:9] == "Pawn" and child.First_use:
                         child.First_use = False
+
                     self.draw_moves()
-                    self.turn()
+                    if check_check():
+                        ("print check si ce move est joué")
+                        anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
+                        anim.start(self.children[id])
+                        break
+
+                    else:
+                        self.turn()
+                        break
 
                 elif (grid_x, grid_y) in ChessBoard.available_moves["pieces_to_capture"]:
                     for enemy in self.children:
@@ -473,11 +492,20 @@ class ChessBoard(RelativeLayout):
                             ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
                             if child.id[5:9] == "Pawn" and child.First_use:
                                 child.First_use = False
+
                             self.draw_moves()
-                            self.turn()
-                            break
+                            if check_check():
+                                ("print check si ce move est joué")
+                                anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
+                                anim.start(self.children[id])
+                                break
+                            else:
+                                self.turn()
+
+                                break
 
             elif ChessBoard.piece_pressed and ChessBoard.id_piece_[5:] == "King" and (grid_x, grid_y) in ChessBoard.available_moves["castling"] and child.id[:5] == ChessBoard.id_piece_[:5] and child.id[5:-2] == "Rook":
+                #TODO: check check 
                 if child.grid_x == grid_x + 1:
                     anim = Animation(grid_x=grid_x-1, grid_y=grid_y, t='in_out_expo', duration=0.5)
                     anim.start(self.children[id])
@@ -505,6 +533,21 @@ class ChessBoard(RelativeLayout):
 
         else:
             ChessBoard.turn_ = "White"
+
+
+    def check_check(self):
+        King = None
+        for piece_ in self.children:
+            if piece_.id[:5] == self.turn and piece_[5:] == "King":
+                King = piece_
+                break
+
+        for piece in self.children:
+            if piece.id[:5] != self.turn:
+                piece_available_moves = piece.available_moves()
+                if (King.grid_x, King.grid_y) in piece_available_moves["available_moves"] or (King.grid_x, King.grid_y) in piece_available_moves["pieces_to_capture"]:
+                    return True
+
 
     def draw_moves(self):
 
