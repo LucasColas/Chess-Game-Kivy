@@ -177,7 +177,6 @@ class Rook(ChessPiece):
         return available_moves
 
 
-
 class Knight(ChessPiece):
     """
         Class for Knight piece.
@@ -305,7 +304,6 @@ class Bishop(ChessPiece):
         return available_moves
 
 
-
 class Queen(Rook, Bishop): #Inherit from Bishop and Rook
     def available_moves(self, pieces):
         #Inherits from Bishop and Rook
@@ -393,29 +391,6 @@ class King(ChessPiece):
                 return [(self.grid_x-2, self.grid_y)]
         return []
 
-    def check_check(self, pieces): #check if there is a check
-        for piece in pieces:
-            if piece.id[:5] != self.id[:5]:
-                piece_available_moves = piece.available_moves()
-                if (self.grid_x, self.grid_y) in piece_available_moves["available_moves"] or (self.grid_x, self.grid_y) in piece_available_moves["pieces_to_capture"]:
-                    return True
-
-        return False
-
-    def eliminate_check(self, pieces):
-        ids_ = []
-        for piece in pieces:
-            if piece.id[:5] == self.id[:5]:
-                piece_available_moves = piece.available_moves()
-                if (self.grid_x, self.grid_y) in piece_available_moves["available_moves"] or (self.grid_x, self.grid_y) in piece_available_moves["pieces_to_capture"]:
-                    ids_.append(piece.id)
-
-    def checkmate(self, pieces):
-
-        if len(self.available_moves()["available_moves"]) == 0 and len(self.available_moves()["pieces_to_capture"]) == 0 and self.check_check(pieces):
-            return True
-
-        return False
 
 class ChessBoard(RelativeLayout):
     """
@@ -472,7 +447,7 @@ class ChessBoard(RelativeLayout):
 
                     self.draw_moves()
                     if check_check():
-                        ("print check si ce move est joué")
+                        print("check si ce move est joué")
                         anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
                         anim.start(self.children[id])
                         break
@@ -505,7 +480,7 @@ class ChessBoard(RelativeLayout):
                                 break
 
             elif ChessBoard.piece_pressed and ChessBoard.id_piece_[5:] == "King" and (grid_x, grid_y) in ChessBoard.available_moves["castling"] and child.id[:5] == ChessBoard.id_piece_[:5] and child.id[5:-2] == "Rook":
-                #TODO: check check 
+                #TODO: check check
                 if child.grid_x == grid_x + 1:
                     anim = Animation(grid_x=grid_x-1, grid_y=grid_y, t='in_out_expo', duration=0.5)
                     anim.start(self.children[id])
@@ -548,6 +523,30 @@ class ChessBoard(RelativeLayout):
                 if (King.grid_x, King.grid_y) in piece_available_moves["available_moves"] or (King.grid_x, King.grid_y) in piece_available_moves["pieces_to_capture"]:
                     return True
 
+
+    def checkmate(self):
+        if self.check_check(self):
+            id = None
+            for child in self.children:
+                if child.id[:5] == self.turn:
+                    every_move = []
+                    for type_of_moves in child.available_moves().values():
+                        every_move.extend(type_of_moves)
+                    for move in every_move:
+                        #Create an invisible piece and test if it removes the check
+
+                        if child.id[5:9] == "Pawn":
+                            id = self.turn+"Pawn"+"inv"
+                            self.add_widget(Pawn(id=id, source=None, grid_x=move[0], grid_y=move[1]))
+
+
+
+                        if not self.check_check():
+                            #Remove widget
+                            return False
+
+
+        return True
 
     def draw_moves(self):
 
