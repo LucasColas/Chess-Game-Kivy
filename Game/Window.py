@@ -402,17 +402,19 @@ class ChessBoard(RelativeLayout):
     turn_ = "White"
     piece_index = None
     check = BooleanProperty(defaultvalue=False)
+
     def on_touch_down(self, touch):
         rows, cols = 8,8
         #get the position
         grid_x = int(touch.pos[0] / self.width * rows)
         grid_y = int(touch.pos[1] / self.height * cols)
-
+        if self.checkmate():
+            print(f"{ChessBoard.turn_} lost.")
         for id, child in enumerate(self.children):
             old_x, old_y = child.grid_x, child.grid_y
             if not ChessBoard.piece_pressed:
 
-                #TODO: do the 3 special moves
+                #TODO: do the 2 special moves
                 if grid_x == child.grid_x and grid_y == child.grid_y and child.id[:5] == ChessBoard.turn_: #The player clicked on a piece
                     ChessBoard.piece_pressed = True
                     ChessBoard.piece_index = id
@@ -446,7 +448,7 @@ class ChessBoard(RelativeLayout):
                         child.First_use = False
 
                     self.draw_moves()
-                    if check_check():
+                    if self.check_check():
                         print("check si ce move est joué")
                         anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
                         anim.start(self.children[id])
@@ -469,7 +471,7 @@ class ChessBoard(RelativeLayout):
                                 child.First_use = False
 
                             self.draw_moves()
-                            if check_check():
+                            if self.check_check():
                                 ("print check si ce move est joué")
                                 anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
                                 anim.start(self.children[id])
@@ -513,40 +515,63 @@ class ChessBoard(RelativeLayout):
     def check_check(self):
         King = None
         for piece_ in self.children:
-            if piece_.id[:5] == self.turn and piece_[5:] == "King":
+            if piece_.id[:5] == ChessBoard.turn_ and piece_.id[5:] == "King":
                 King = piece_
                 break
 
+
         for piece in self.children:
-            if piece.id[:5] != self.turn:
-                piece_available_moves = piece.available_moves()
+            if piece.id[:5] != ChessBoard.turn_:
+                piece_available_moves = piece.available_moves(self.children)
                 if (King.grid_x, King.grid_y) in piece_available_moves["available_moves"] or (King.grid_x, King.grid_y) in piece_available_moves["pieces_to_capture"]:
                     return True
+        return False
 
 
     def checkmate(self):
-        if self.check_check(self):
-            id = None
+        """
+        Check if a player can avoid checkmate.
+        """
+
+        if self.check_check():
+            still_check = False
             for child in self.children:
-                if child.id[:5] == self.turn:
+                if child.id[:5] == ChessBoard.turn_:
                     every_move = []
                     for type_of_moves in child.available_moves().values():
                         every_move.extend(type_of_moves)
-                    for move in every_move:
-                        #Create an invisible piece and test if it removes the check
-
+                    for move in every_moves:
+                        #create an invisible piece with every move in every_move and check if it avoids the check.
                         if child.id[5:9] == "Pawn":
-                            id = self.turn+"Pawn"+"inv"
-                            self.add_widget(Pawn(id=id, source=None, grid_x=move[0], grid_y=move[1]))
+                            self.add_widget(Pawn(id=child.id[:5]+"InvPawn",source=None,grid_x=move[0], grid_y=move[1]))
 
+                        elif child.id[5:9] == "Rook":
+                            self.add_widget(Rook(id=child.id[:5]+"InvRook",source=None,grid_x=move[0], grid_y=move[1]))
 
+                        elif child.id[5:11] == "Knight":
+                            self.add_widget(Knight(id=child.id[:5]+"InvKnight",source=None,grid_x=move[0], grid_y=move[1]))
+
+                        elif child.id[5:11] == "Bishop":
+                            self.add_widget(Bishop(id=child.id[:5]+"InvBishop",source=None,grid_x=move[0], grid_y=move[1]))
+
+                        elif child.id[5:10] == "Queen":
+                            self.add_widget(Queen(id=child.id[:5]+"InvQueen",source=None,grid_x=move[0], grid_y=move[1]))
+
+                        elif child.id[5:9] == "King":
+                            self.add_widget(King(id=child.id[:5]+"InvKing",source=None,grid_x=move[0], grid_y=move[1]))
 
                         if not self.check_check():
-                            #Remove widget
+                            still_check = True
+
+                        for child2 in self.children:
+                            if "Inv" in child2.id:
+                                self.remove_widget(child2)
+
+                        if still_check:
                             return False
 
-
-        return True
+            return True
+        return False
 
     def draw_moves(self):
 
