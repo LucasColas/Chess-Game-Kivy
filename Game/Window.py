@@ -68,7 +68,7 @@ class Pawn(ChessPiece):
                 available_moves["available_moves"] = ((self.grid_x, self.grid_y+1), (self.grid_x, self.grid_y+2))
             else:
                 available_moves["available_moves"] = ((self.grid_x, self.grid_y+1),)
-                print("not first use, available_moves : ",available_moves["available_moves"])
+                #print("not first use, available_moves : ",available_moves["available_moves"])
 
 
 
@@ -254,7 +254,7 @@ class Bishop(ChessPiece):
             available_moves["available_moves"].append((self.grid_x + i, self.grid_y + i))
 
         for i in range(1, rows):
-            print("coord ",self.grid_x - i, self.grid_y + i)
+            #print("coord ",self.grid_x - i, self.grid_y + i)
             if self.grid_x - i < 0 or self.grid_y + i >= rows:
                 break
             found = False
@@ -310,9 +310,9 @@ class Queen(Rook, Bishop): #Inherit from Bishop and Rook
         #get the available moves
         #super(Rook, self).available_moves(pieces)
         available_moves1 = Rook.available_moves(self,pieces)
-        print("available_moves1", available_moves1)
+        #print("available_moves1", available_moves1)
         available_moves2 = Bishop.available_moves(self,pieces)
-        print("available_moves2", available_moves2)
+        #print("available_moves2", available_moves2)
         available_moves = {key: val + available_moves2[key] for key, val in available_moves1.items()}
         return available_moves
 
@@ -368,7 +368,7 @@ class King(ChessPiece):
 
     def castling(self, pieces):
         if self.First_use:
-            print("castling First use")
+            #print("castling First use")
             no_piece_left = True
             no_piece_right = True
             for piece in pieces:
@@ -419,17 +419,17 @@ class ChessBoard(RelativeLayout):
                     ChessBoard.piece_pressed = True
                     ChessBoard.piece_index = id
                     #Get available_moves
-                    print(child.id)
+                    #print(child.id)
                     ChessBoard.available_moves = child.available_moves(self.children)
                     self.draw_moves()
-                    print(ChessBoard.available_moves)
+                    #print(ChessBoard.available_moves)
                     ChessBoard.id_piece_ = child.id
                     break
             elif ChessBoard.piece_pressed and grid_x == child.grid_x and grid_y == child.grid_y and ChessBoard.id_piece_[:5] == child.id[:5]:
                 ChessBoard.available_moves = child.available_moves(self.children)
-                print(child.id)
+                #print(child.id)
                 self.draw_moves()
-                print("in elif",ChessBoard.available_moves)
+                #print("in elif",ChessBoard.available_moves)
                 ChessBoard.id_piece_ = child.id
                 break
 
@@ -449,7 +449,7 @@ class ChessBoard(RelativeLayout):
 
                     self.draw_moves()
                     if self.check_check():
-                        print("check si ce move est joué")
+                        #print("check si ce move est joué")
                         anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
                         anim.start(self.children[id])
                         break
@@ -472,7 +472,7 @@ class ChessBoard(RelativeLayout):
 
                             self.draw_moves()
                             if self.check_check():
-                                ("print check si ce move est joué")
+                                #("print check si ce move est joué")
                                 anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
                                 anim.start(self.children[id])
                                 break
@@ -538,9 +538,11 @@ class ChessBoard(RelativeLayout):
             for child in self.children:
                 if child.id[:5] == ChessBoard.turn_:
                     every_move = []
-                    for type_of_moves in child.available_moves().values():
+                    for type_of_moves in child.available_moves(self.children).values():
                         every_move.extend(type_of_moves)
-                    for move in every_moves:
+
+                    print(f"every move : {every_move}")
+                    for move in every_move:
                         #create an invisible piece with every move in every_move and check if it avoids the check.
                         if child.id[5:9] == "Pawn":
                             self.add_widget(Pawn(id=child.id[:5]+"InvPawn",source=None,grid_x=move[0], grid_y=move[1]))
@@ -560,7 +562,7 @@ class ChessBoard(RelativeLayout):
                         elif child.id[5:9] == "King":
                             self.add_widget(King(id=child.id[:5]+"InvKing",source=None,grid_x=move[0], grid_y=move[1]))
 
-                        if not self.check_check():
+                        if self.check_check():
                             still_check = True
 
                         for child2 in self.children:
@@ -568,9 +570,9 @@ class ChessBoard(RelativeLayout):
                                 self.remove_widget(child2)
 
                         if still_check:
-                            return False
+                            return True
 
-            return True
+            return False
         return False
 
     def draw_moves(self):
@@ -594,7 +596,7 @@ class ChessBoard(RelativeLayout):
             #moves = InstructionGroup() #Group where we store every circles
 
             for idx, moves in enumerate(ChessBoard.available_moves.values()): #available_moves and pieces_to_capture
-                print("moves in draw_moves : ", moves)
+                #print("moves in draw_moves : ", moves)
                 if idx == 0:
                     Color(rgb=Blue)
                     for move in moves:
