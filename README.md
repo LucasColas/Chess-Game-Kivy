@@ -1,6 +1,6 @@
-# Chess-Game-AI
+# Chess-Game
 
-New chess game with an AI. Game made with Kivy and aimed to be cross platform.
+New chess game. Game made with Kivy and aimed to be cross platform.
 
 The AI is not implemented yet. But you can play with another friend ;)
 
