@@ -9,7 +9,6 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.image import Image
 from kivy.animation import Animation
-from kivy.uix.behaviors import ButtonBehavior
 from kivy.properties import *
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Rectangle, Color, Ellipse
@@ -30,6 +29,8 @@ class ChessPieceButton(ButtonBehavior, Image):
     print("grid_x in class : ", grid_x)
 """
 class ChessPiece(ButtonBehavior, Image):
+
+
     grid_x = NumericProperty()
     grid_y = NumericProperty()
     id = StringProperty()
@@ -75,7 +76,11 @@ class Pawn(ChessPiece):
 
             for piece in pieces:
                 #if there is a piece in front of it then it can move forward.
+
                 if piece.grid_y == self.grid_y + 1 and piece.grid_x == self.grid_x:
+                    available_moves["available_moves"] = ()
+
+                if self.First_use and piece.grid_y == self.grid_y + 2 and piece.grid_x == self.grid_x:
                     available_moves["available_moves"] = ()
 
                 #Look for pieces to capture. They must be white pieces.
@@ -88,6 +93,7 @@ class Pawn(ChessPiece):
             return available_moves
 
         if self.id[:5] == "Black":
+
             #print("Black")
             available_moves = {"available_moves":(), "pieces_to_capture":[]}
             if self.First_use: #if it's the first time a pawn moves
@@ -99,6 +105,9 @@ class Pawn(ChessPiece):
                 available_moves["available_moves"] = ((self.grid_x, self.grid_y-1),)
             for piece in pieces:
                 if piece.grid_y == self.grid_y - 1 and piece.grid_x == self.grid_x:
+                    available_moves["available_moves"] = ()
+
+                if self.First_use and piece.grid_y == self.grid_y - 2 and piece.grid_x == self.grid_x:
                     available_moves["available_moves"] = ()
 
                 #Look for pieces to capture. They must be white pieces.
@@ -188,6 +197,8 @@ class Knight(ChessPiece):
 
         for piece in pieces:
             if self.id[:5] == "White":
+
+                # TODO: self.id[:5] == or != piece.id[:5]
 
                 if piece.id[:5] == "White" and (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
                     available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
@@ -324,7 +335,7 @@ class King(ChessPiece):
         good_available_moves = []
         for move in available_moves["available_moves"]:
 
-            if move[0] < cols and move[1] < rows and move[1] >= 0 and move[0] >= 0:
+            if move[0] <= cols and move[1] <= rows and move[1] >= 0 and move[0] >= 0:
 
                 good_available_moves.append(move)
                 #print("in King : ", available_moves)
@@ -335,6 +346,7 @@ class King(ChessPiece):
         for piece in pieces:
             if (piece.grid_x, piece.grid_y) in available_moves["available_moves"]:
                 if piece.id[:5] != self.id[:5]:
+                    available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
                     available_moves["pieces_to_capture"].append((piece.grid_x, piece.grid_y))
 
                 available_moves["available_moves"].remove((piece.grid_x, piece.grid_y))
@@ -431,6 +443,7 @@ class ChessBoard(RelativeLayout):
                 self.draw_moves()
                 #print("in elif",ChessBoard.available_moves)
                 ChessBoard.id_piece_ = child.id
+                ChessBoard.piece_index = id
                 break
 
             elif ChessBoard.piece_pressed and child.id == ChessBoard.id_piece_:
@@ -444,7 +457,7 @@ class ChessBoard(RelativeLayout):
 
                     ChessBoard.piece_pressed = False
                     ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
-                    if child.id[5:9] == "Pawn" and child.First_use:
+                    if (child.id[5:9] == "Pawn" or child.id[5:9] == "Rook" or child.id[5:9] == "King") and child.First_use:
                         child.First_use = False
 
                     self.draw_moves()
@@ -467,7 +480,7 @@ class ChessBoard(RelativeLayout):
                             self.remove_widget(enemy)
                             ChessBoard.piece_pressed = False
                             ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
-                            if child.id[5:9] == "Pawn" and child.First_use:
+                            if (child.id[5:9] == "Pawn" or child.id[5:9] == "Rook" or child.id[5:9] == "King") and child.First_use:
                                 child.First_use = False
 
                             self.draw_moves()
@@ -481,7 +494,7 @@ class ChessBoard(RelativeLayout):
 
                                 break
 
-            elif ChessBoard.piece_pressed and ChessBoard.id_piece_[5:] == "King" and (grid_x, grid_y) in ChessBoard.available_moves["castling"] and child.id[:5] == ChessBoard.id_piece_[:5] and child.id[5:-2] == "Rook":
+            elif ChessBoard.piece_pressed and ChessBoard.id_piece_[5:] == "King" and (grid_x, grid_y) in ChessBoard.available_moves["castling"] and child.id[:5] == ChessBoard.id_piece_[:5] and child.id[5:-2] == "Rook" and child.First_use:
                 #TODO: check check
                 if child.grid_x == grid_x + 1:
                     anim = Animation(grid_x=grid_x-1, grid_y=grid_y, t='in_out_expo', duration=0.5)
@@ -496,6 +509,23 @@ class ChessBoard(RelativeLayout):
                 child.First_use = False
                 self.children[ChessBoard.piece_index].First_use = False
                 ChessBoard.available_moves = {"available_moves":(), "pieces_to_capture":[]}
+                if self.check_check():
+                    #("print check si ce move est joué")
+                    anim = Animation(grid_x=old_x, grid_y=old_y, t='in_quad', duration=0.5)
+                    anim.start(self.children[id])
+                    if ChessBoard.id_piece_ == "White":
+                        anim = Animation(grid_x=4, grid_y=0, t='in_quad', duration=0.5)
+                        anim.start(self.children[ChessBoard.piece_index])
+                    if ChessBoard.id_piece_ == "White":
+                        anim = Animation(grid_x=4, grid_y=7, t='in_quad', duration=0.5)
+                        anim.start(self.children[ChessBoard.piece_index])
+                    child.First_use = True
+                    self.children[ChessBoard.piece_index].First_use = True
+                    break
+                else:
+                    self.turn()
+                    self.draw_moves()
+                    break
                 self.turn()
                 self.draw_moves()
 
@@ -534,14 +564,14 @@ class ChessBoard(RelativeLayout):
         """
 
         if self.check_check():
-            still_check = False
+            still_check = True
             for child in self.children:
                 if child.id[:5] == ChessBoard.turn_:
                     every_move = []
                     for type_of_moves in child.available_moves(self.children).values():
                         every_move.extend(type_of_moves)
 
-                    print(f"every move : {every_move}")
+                    #print(f"every move : {every_move}")
                     for move in every_move:
                         #create an invisible piece with every move in every_move and check if it avoids the check.
                         if child.id[5:9] == "Pawn":
@@ -562,18 +592,19 @@ class ChessBoard(RelativeLayout):
                         elif child.id[5:9] == "King":
                             self.add_widget(King(id=child.id[:5]+"InvKing",source=None,grid_x=move[0], grid_y=move[1]))
 
-                        if self.check_check():
-                            still_check = True
+                        if not self.check_check():
+                            still_check = False
+
 
                         for child2 in self.children:
                             if "Inv" in child2.id:
                                 self.remove_widget(child2)
 
-                        if still_check:
-                            return True
+                        if not still_check:
+                            return False
 
-            return False
-        return False
+
+        return True
 
     def draw_moves(self):
 
