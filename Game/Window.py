@@ -19,15 +19,6 @@ Width, Height = 800, 800
 Window.size = (Width, Height)
 
 #Config.set('graphics', 'resizable', False)
-"""
-class ChessPieceButton(ButtonBehavior, Image):
-
-    grid_x = NumericProperty(0)
-    grid_y = NumericProperty(0)
-
-    position_hint = ReferenceListProperty(grid_x, grid_y)
-    print("grid_x in class : ", grid_x)
-"""
 class ChessPiece(ButtonBehavior, Image):
 
 
